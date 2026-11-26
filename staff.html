@@ -120,12 +120,15 @@ const FB = {
   appId: "1:278562650692:web:983fa90ff1a38886095a11"
 };
 
-// EMAIL ADMIN DAN KASIR
-const ADMIN = ["admin@kantinku.com"];
+// =====================================
+// 2. EMAIL ADMIN DAN KASIR TERBARU
+// =====================================
+
+const ADMIN = ["admin@pesanan.com"];
 const KASIR = ["kasir@pesanan.com"];
 
 // =====================================
-// 2. VARIABEL
+// 3. VARIABEL
 // =====================================
 
 let U = null;
@@ -177,7 +180,7 @@ const tot = o => (o.items || []).reduce(
 );
 
 // =====================================
-// 3. KONEKSI FIREBASE
+// 4. KONEKSI FIREBASE
 // =====================================
 
 function init(){
@@ -186,7 +189,10 @@ function init(){
 
   try{
 
-    firebase.initializeApp(FB);
+    if(!firebase.apps.length){
+      firebase.initializeApp(FB);
+    }
+
     auth = firebase.auth();
     db = firebase.firestore();
 
@@ -249,7 +255,7 @@ function init(){
 }
 
 // =====================================
-// 4. LOGIN ADMIN DAN KASIR
+// 5. LOGIN ADMIN DAN KASIR
 // =====================================
 
 function login(){
@@ -289,7 +295,7 @@ function login(){
 }
 
 // =====================================
-// 5. LOGOUT
+// 6. LOGOUT
 // =====================================
 
 function logout(){
@@ -297,7 +303,7 @@ function logout(){
 }
 
 // =====================================
-// 6. UPDATE PESANAN
+// 7. UPDATE PESANAN
 // =====================================
 
 function upd(k,f,v){
@@ -310,7 +316,7 @@ function upd(k,f,v){
 }
 
 // =====================================
-// 7. TAMPILAN WEBSITE
+// 8. TAMPILAN WEBSITE
 // =====================================
 
 function draw(){
@@ -456,7 +462,7 @@ function draw(){
 }
 
 // =====================================
-// 8. JALANKAN APLIKASI
+// 9. JALANKAN APLIKASI
 // =====================================
 
 init();
