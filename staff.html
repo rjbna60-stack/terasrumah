@@ -121,11 +121,15 @@ const FB = {
 };
 
 // =====================================
-// 2. EMAIL ADMIN DAN KASIR TERBARU
+// 2. EMAIL ADMIN DAN KASIR
 // =====================================
 
 const ADMIN = ["admin@pesanan.com"];
 const KASIR = ["kasir@pesanan.com"];
+
+function normalizeEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
 
 // =====================================
 // 3. VARIABEL
@@ -206,36 +210,46 @@ function init(){
       }
 
       L = [];
+      banner = "";
 
       if(u){
 
-        first = true;
+        const email = normalizeEmail(u.email);
+        const adm = ADMIN.map(normalizeEmail).includes(email);
+        const kas = KASIR.map(normalizeEmail).includes(email);
 
-        unsub = db.collection("pesanan")
-          .orderBy("w","desc")
-          .limit(100)
-          .onSnapshot(s => {
+        // Hanya akun Admin dan Kasir yang membaca pesanan
+        if(adm || kas){
 
-            if(!first && s.docChanges().some(c=>c.type==="added")){
-              banner = "🔔 Ada pesanan baru!";
-            }
+          first = true;
 
-            first = false;
+          unsub = db.collection("pesanan")
+            .orderBy("w","desc")
+            .limit(100)
+            .onSnapshot(s => {
 
-            L = s.docs.map(d => ({
-              ...d.data(),
-              k:d.id
-            }));
+              if(!first && s.docChanges().some(c=>c.type==="added")){
+                banner = "🔔 Ada pesanan baru!";
+              }
 
-            err = "";
-            draw();
+              first = false;
 
-          },e => {
+              L = s.docs.map(d => ({
+                ...d.data(),
+                k:d.id
+              }));
 
-            err = "Tidak bisa membaca pesanan: " + e.message;
-            draw();
+              err = "";
+              draw();
 
-          });
+            },e => {
+
+              err = "Tidak bisa membaca pesanan: " + e.message;
+              draw();
+
+            });
+
+        }
 
       }
 
@@ -260,7 +274,7 @@ function init(){
 
 function login(){
 
-  const email = document.getElementById("e").value.trim().toLowerCase();
+  const email = normalizeEmail(document.getElementById("e").value);
   const password = document.getElementById("p").value;
   const btn = document.getElementById("loginBtn");
 
@@ -299,7 +313,9 @@ function login(){
 // =====================================
 
 function logout(){
-  auth.signOut();
+  if(auth){
+    auth.signOut();
+  }
 }
 
 // =====================================
@@ -352,21 +368,36 @@ function draw(){
     return;
   }
 
-  const email = (U.email || "").toLowerCase();
+  // Periksa email akun yang sedang login
+  const email = normalizeEmail(U.email);
 
-  const adm = ADMIN.includes(email);
-  const kas = KASIR.includes(email);
+  const adm = ADMIN.map(normalizeEmail).includes(email);
+  const kas = KASIR.map(normalizeEmail).includes(email);
 
+  // Jika email tidak dikenali
   if(!adm && !kas){
+
     m.innerHTML = `
       <div class="box err">
+        <h3>Akses Ditolak</h3>
+
         Akun ini belum memiliki akses sebagai Admin atau Kasir.
+
+        <p>Email yang terdeteksi:</p>
+        <b>${esc(email || "Email tidak tersedia")}</b>
+
+        <p class="mu">
+          Pastikan email akun Firebase sama dengan daftar email Admin atau Kasir.
+        </p>
+
         <button class="btn" onclick="logout()">Keluar</button>
       </div>
     `;
+
     return;
   }
 
+  // Hitung omzet dan pesanan
   const omzet = L.filter(o =>
     o.sb==="lunas" && o.ss!=="dibatalkan"
   ).reduce((a,o)=>a+tot(o),0);
