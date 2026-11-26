@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function staff() {
+      return request.auth != null
+        && request.auth.token.email in ['GANTI_admin@email.com', 'GANTI_kasir@email.com'];
+    }
+    match /pesanan/{id} {
+      allow get: if true;
+      allow list: if staff();
+      allow create: if request.resource.data.ss == 'baru'
+                    && request.resource.data.sb == 'belum'
+                    && id.size() <= 20;
+      allow update: if staff()
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['bk','sb'])
+            && request.resource.data.sb == 'menunggu'
+            && resource.data.ss != 'dibatalkan'
+            && resource.data.sb != 'lunas');
+      allow delete: if staff();
+    }
+  }
+}
